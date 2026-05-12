@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>라디오 버스킹</title>
+<title>진의 라디오 버스킹</title>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@300;400;500;600&family=Noto+Sans+KR:wght@300;400;500&family=Gowun+Batang:wght@400;700&display=swap" rel="stylesheet">
 
 <!-- Firebase SDK -->
@@ -30,22 +30,23 @@
 
 <style>
   :root {
-    --cream: #faf7f2;
-    --blush: #f5ede6;
-    --rose: #e8cfc4;
-    --dusty: #d4b5a8;
-    --muted: #a8897c;
-    --brown: #7a5c52;
-    --text: #3d2b25;
-    --soft: #c9b0a5;
-    --light: #fdf9f6;
-    --accent: #e2c4b8;
+    --mint: #e8f5f2;
+    --peach: #fceee6;
+    --rose: #f0d4c8;
+    --dusty: #a8806e;
+    --muted: #7a5c52;
+    --brown: #6b4f47;
+    --text: #362420;
+    --soft: #8c6e65;
+    --light: #fdfaf8;
+    --accent: #c9a898;
+    --card: rgba(255,255,255,0.62);
   }
 
   * { margin: 0; padding: 0; box-sizing: border-box; }
 
   body {
-    background: var(--cream);
+    background: #f0f7f4;
     color: var(--text);
     font-family: 'Noto Sans KR', sans-serif;
     font-weight: 300;
@@ -53,16 +54,19 @@
     min-height: 100vh;
   }
 
-  /* ── 배경 패턴 ── */
+  /* ── 두 색 그라데이션 배경 ── */
   body::before {
     content: '';
     position: fixed;
     inset: 0;
-    background-image:
-      radial-gradient(circle at 20% 20%, rgba(232,207,196,0.25) 0%, transparent 50%),
-      radial-gradient(circle at 80% 70%, rgba(212,181,168,0.2) 0%, transparent 50%);
-    pointer-events: none;
+    background:
+      linear-gradient(135deg,
+        #ddf0eb 0%,
+        #eef7f4 30%,
+        #fdf3ee 65%,
+        #fce8df 100%);
     z-index: 0;
+    pointer-events: none;
   }
 
   .container {
@@ -75,79 +79,82 @@
 
   /* ── 헤더 ── */
   header {
-    text-align: center;
-    padding: 52px 0 36px;
+    padding: 56px 0 32px;
     position: relative;
   }
 
-  .mic-icon {
-    width: 64px;
-    height: 64px;
-    background: var(--blush);
-    border-radius: 50%;
+  .header-inner {
     display: flex;
-    align-items: center;
-    justify-content: center;
-    margin: 0 auto 18px;
-    font-size: 26px;
-    border: 1.5px solid var(--rose);
+    flex-direction: column;
+    gap: 0;
+  }
+
+  .header-label {
+    font-size: 0.91rem;
+    letter-spacing: 0.18em;
+    color: var(--brown);
+    text-transform: uppercase;
+    margin-bottom: 10px;
   }
 
   header h1 {
     font-family: 'Gowun Batang', serif;
-    font-size: 1.75rem;
+    font-size: 2.33rem;
     font-weight: 700;
-    letter-spacing: 0.04em;
+    letter-spacing: -0.01em;
     color: var(--text);
+    line-height: 1.2;
   }
 
   .tagline {
-    font-size: 0.78rem;
-    color: var(--muted);
-    letter-spacing: 0.06em;
-    margin-top: 4px;
+    font-size: 0.99rem;
+    color: var(--brown);
+    letter-spacing: 0.05em;
+    margin-top: 6px;
   }
 
   .bio {
-    font-size: 0.82rem;
+    font-size: 1.06rem;
     color: var(--brown);
-    margin: 14px 0 16px;
-    line-height: 1.9;
+    margin: 18px 0 16px;
+    line-height: 2;
+    border-left: 2px solid var(--rose);
+    padding-left: 14px;
   }
 
   .tags {
     display: flex;
-    gap: 7px;
-    justify-content: center;
+    gap: 6px;
     flex-wrap: wrap;
   }
 
   .tag {
-    background: var(--blush);
-    border: 1px solid var(--rose);
+    background: rgba(255,255,255,0.5);
+    border: 1px solid var(--accent);
     color: var(--muted);
-    font-size: 0.72rem;
-    padding: 4px 12px;
+    font-size: 0.93rem;
+    padding: 3px 11px;
     border-radius: 20px;
     letter-spacing: 0.04em;
   }
 
   .admin-btn-wrap {
     position: absolute;
-    top: 16px;
+    top: 20px;
     right: 0;
   }
 
   .admin-btn {
-    background: var(--blush);
-    border: 1px solid var(--rose);
+    background: rgba(255,255,255,0.5);
+    border: 1px solid var(--accent);
     color: var(--muted);
-    font-size: 0.72rem;
-    padding: 6px 14px;
+    font-size: 0.93rem;
+    padding: 5px 13px;
     border-radius: 20px;
     cursor: pointer;
     font-family: 'Noto Sans KR', sans-serif;
     transition: background 0.2s;
+    letter-spacing: 0.04em;
   }
 
   .admin-btn:hover { background: var(--rose); }
@@ -155,52 +162,54 @@
   /* ── 구분선 ── */
   .divider {
     height: 1px;
-    background: linear-gradient(to right, transparent, var(--rose), transparent);
-    margin: 28px 0;
+    background: linear-gradient(to right, transparent, var(--accent), transparent);
+    margin: 24px 0;
   }
 
   /* ── 섹션 공통 ── */
   .section {
-    background: rgba(255,255,255,0.55);
-    border: 1px solid rgba(232,207,196,0.5);
-    border-radius: 16px;
-    padding: 28px 26px;
-    margin-bottom: 18px;
-    backdrop-filter: blur(4px);
+    background: var(--card);
+    border: 1px solid rgba(255,255,255,0.8);
+    border-radius: 18px;
+    padding: 26px 24px;
+    margin-bottom: 14px;
+    backdrop-filter: blur(8px);
+    box-shadow: 0 2px 20px rgba(180,140,128,0.08);
   }
 
   .section-title {
     font-family: 'Gowun Batang', serif;
-    font-size: 0.88rem;
+    font-size: 1.05rem;
     font-weight: 700;
     color: var(--brown);
-    letter-spacing: 0.08em;
+    letter-spacing: 0.1em;
     margin-bottom: 16px;
     display: flex;
     align-items: center;
     gap: 8px;
+    text-transform: uppercase;
   }
 
   .section-title::before {
     content: '';
     display: block;
-    width: 4px;
-    height: 14px;
-    background: var(--dusty);
+    width: 3px;
+    height: 13px;
+    background: linear-gradient(to bottom, var(--dusty), var(--rose));
     border-radius: 2px;
   }
 
   .empty-msg {
     text-align: center;
     color: var(--soft);
-    font-size: 0.8rem;
+    font-size: 1.03rem;
     padding: 18px 0;
     letter-spacing: 0.04em;
   }
 
   /* ── 버스킹 일정 ── */
   .schedule-content {
-    font-size: 0.85rem;
+    font-size: 1.08rem;
     color: var(--text);
     white-space: pre-wrap;
     line-height: 1.9;
@@ -218,21 +227,24 @@
     display: flex;
     align-items: center;
     gap: 12px;
-    background: var(--light);
-    border: 1px solid var(--accent);
-    border-radius: 10px;
+    background: rgba(255,255,255,0.5);
+    border: 1px solid rgba(255,255,255,0.85);
+    border-radius: 12px;
     padding: 12px 16px;
-    transition: background 0.2s;
+    transition: background 0.2s, transform 0.15s;
     cursor: pointer;
     text-decoration: none;
     color: inherit;
   }
 
-  .setlist-item:hover { background: var(--blush); }
+  .setlist-item:hover {
+    background: rgba(255,255,255,0.8);
+    transform: translateX(3px);
+  }
 
   .track-num {
     font-family: 'Gowun Batang', serif;
-    font-size: 0.72rem;
+    font-size: 0.95rem;
     color: var(--soft);
     min-width: 20px;
     text-align: center;
@@ -241,19 +253,19 @@
   .track-info { flex: 1; }
 
   .track-title {
-    font-size: 0.85rem;
+    font-size: 1.08rem;
     font-weight: 500;
     color: var(--text);
   }
 
   .track-artist {
-    font-size: 0.75rem;
+    font-size: 0.98rem;
     color: var(--muted);
     margin-top: 2px;
   }
 
   .track-link {
-    font-size: 0.7rem;
+    font-size: 0.93rem;
     color: var(--soft);
     padding: 3px 8px;
     border: 1px solid var(--rose);
@@ -268,7 +280,7 @@
 
   .form-group label {
     display: block;
-    font-size: 0.75rem;
+    font-size: 0.98rem;
     color: var(--muted);
     margin-bottom: 6px;
     letter-spacing: 0.04em;
@@ -278,16 +290,16 @@
   .form-group textarea,
   .form-group select {
     width: 100%;
-    background: var(--light);
+    background: rgba(255,255,255,0.6);
     border: 1px solid var(--accent);
     border-radius: 10px;
     padding: 10px 14px;
     font-family: 'Noto Sans KR', sans-serif;
-    font-size: 0.82rem;
+    font-size: 1.05rem;
     color: var(--text);
     font-weight: 300;
     resize: vertical;
-    transition: border-color 0.2s;
+    transition: border-color 0.2s, background 0.2s;
     outline: none;
   }
 
@@ -299,11 +311,11 @@
 
   .submit-btn {
     width: 100%;
-    background: var(--blush);
+    background: rgba(255,255,255,0.6);
     border: 1.5px solid var(--dusty);
     color: var(--brown);
     font-family: 'Noto Sans KR', sans-serif;
-    font-size: 0.82rem;
+    font-size: 1.05rem;
     font-weight: 500;
     padding: 12px;
     border-radius: 10px;
@@ -313,7 +325,7 @@
     margin-top: 4px;
   }
 
-  .submit-btn:hover { background: var(--rose); }
+  .submit-btn:hover { background: rgba(255,255,255,0.9); }
 
   .tab-row {
     display: flex;
@@ -323,11 +335,11 @@
 
   .tab-btn {
     flex: 1;
-    background: var(--light);
+    background: rgba(255,255,255,0.4);
     border: 1px solid var(--accent);
     color: var(--muted);
     font-family: 'Noto Sans KR', sans-serif;
-    font-size: 0.78rem;
+    font-size: 1.01rem;
     padding: 8px;
     border-radius: 8px;
     cursor: pointer;
@@ -335,7 +347,7 @@
   }
 
   .tab-btn.active {
-    background: var(--blush);
+    background: rgba(255,255,255,0.75);
     border-color: var(--dusty);
     color: var(--brown);
     font-weight: 500;
@@ -349,11 +361,11 @@
     display: block;
     width: 100%;
     text-align: center;
-    background: var(--blush);
+    background: rgba(255,255,255,0.6);
     border: 1.5px solid var(--dusty);
     color: var(--brown);
     font-family: 'Noto Sans KR', sans-serif;
-    font-size: 0.85rem;
+    font-size: 1.08rem;
     font-weight: 500;
     padding: 14px;
     border-radius: 12px;
@@ -362,11 +374,11 @@
     transition: background 0.2s;
   }
 
-  .openchat-btn:hover { background: var(--rose); }
+  .openchat-btn:hover { background: rgba(255,255,255,0.88); }
 
   .openchat-desc {
     text-align: center;
-    font-size: 0.78rem;
+    font-size: 1.01rem;
     color: var(--soft);
     margin-top: 10px;
   }
@@ -381,7 +393,7 @@
     color: #fff;
     padding: 10px 22px;
     border-radius: 20px;
-    font-size: 0.8rem;
+    font-size: 1.03rem;
     opacity: 0;
     transition: all 0.3s;
     pointer-events: none;
@@ -409,18 +421,19 @@
   .overlay.active { display: flex; }
 
   .modal {
-    background: var(--cream);
-    border: 1px solid var(--rose);
+    background: rgba(255,255,255,0.85);
+    border: 1px solid rgba(255,255,255,0.9);
     border-radius: 20px;
     padding: 32px 28px;
     width: 90%;
     max-width: 360px;
-    box-shadow: 0 8px 40px rgba(122,92,82,0.15);
+    box-shadow: 0 8px 40px rgba(122,92,82,0.12);
+    backdrop-filter: blur(12px);
   }
 
   .modal h2 {
     font-family: 'Gowun Batang', serif;
-    font-size: 1.1rem;
+    font-size: 1.33rem;
     text-align: center;
     margin-bottom: 20px;
     color: var(--text);
@@ -433,7 +446,7 @@
     border-radius: 10px;
     padding: 10px 14px;
     font-family: 'Noto Sans KR', sans-serif;
-    font-size: 0.88rem;
+    font-size: 1.11rem;
     color: var(--text);
     outline: none;
     text-align: center;
@@ -452,7 +465,7 @@
     border-radius: 10px;
     border: 1px solid var(--accent);
     font-family: 'Noto Sans KR', sans-serif;
-    font-size: 0.82rem;
+    font-size: 1.05rem;
     cursor: pointer;
     transition: background 0.2s;
   }
@@ -476,7 +489,7 @@
     display: none;
     position: fixed;
     inset: 0;
-    background: var(--cream);
+    background: linear-gradient(135deg, #ddf0eb 0%, #eef7f4 30%, #fdf3ee 65%, #fce8df 100%);
     z-index: 2000;
     overflow-y: auto;
   }
@@ -484,8 +497,8 @@
   #admin-page.active { display: block; }
 
   .admin-header {
-    background: var(--blush);
-    border-bottom: 1px solid var(--rose);
+    background: rgba(255,255,255,0.6);
+    border-bottom: 1px solid var(--accent);
     padding: 16px 20px;
     display: flex;
     align-items: center;
@@ -493,11 +506,12 @@
     position: sticky;
     top: 0;
     z-index: 10;
+    backdrop-filter: blur(8px);
   }
 
   .admin-header h1 {
     font-family: 'Gowun Batang', serif;
-    font-size: 1rem;
+    font-size: 1.23rem;
     color: var(--brown);
   }
 
@@ -505,7 +519,7 @@
     background: none;
     border: 1px solid var(--rose);
     color: var(--muted);
-    font-size: 0.78rem;
+    font-size: 1.01rem;
     padding: 6px 14px;
     border-radius: 20px;
     cursor: pointer;
@@ -519,16 +533,18 @@
   }
 
   .admin-section {
-    background: rgba(255,255,255,0.6);
-    border: 1px solid rgba(232,207,196,0.5);
+    background: rgba(255,255,255,0.62);
+    border: 1px solid rgba(255,255,255,0.85);
     border-radius: 16px;
     padding: 24px;
-    margin-bottom: 16px;
+    margin-bottom: 14px;
+    backdrop-filter: blur(6px);
+    box-shadow: 0 2px 16px rgba(180,140,128,0.07);
   }
 
   .admin-section h2 {
     font-family: 'Gowun Batang', serif;
-    font-size: 0.9rem;
+    font-size: 1.13rem;
     color: var(--brown);
     margin-bottom: 14px;
     letter-spacing: 0.06em;
@@ -537,12 +553,12 @@
   .admin-section textarea,
   .admin-section input {
     width: 100%;
-    background: var(--light);
+    background: rgba(255,255,255,0.6);
     border: 1px solid var(--accent);
     border-radius: 10px;
     padding: 10px 14px;
     font-family: 'Noto Sans KR', sans-serif;
-    font-size: 0.82rem;
+    font-size: 1.05rem;
     color: var(--text);
     font-weight: 300;
     resize: vertical;
@@ -551,11 +567,11 @@
   }
 
   .admin-save-btn {
-    background: var(--blush);
+    background: rgba(255,255,255,0.65);
     border: 1.5px solid var(--dusty);
     color: var(--brown);
     font-family: 'Noto Sans KR', sans-serif;
-    font-size: 0.78rem;
+    font-size: 1.01rem;
     font-weight: 500;
     padding: 8px 18px;
     border-radius: 10px;
@@ -563,7 +579,7 @@
     transition: background 0.2s;
   }
 
-  .admin-save-btn:hover { background: var(--rose); }
+  .admin-save-btn:hover { background: rgba(255,255,255,0.9); }
 
   /* 셋리스트 관리 */
   .track-list-admin { list-style: none; }
@@ -580,7 +596,7 @@
 
   .track-item-admin span {
     flex: 1;
-    font-size: 0.82rem;
+    font-size: 1.05rem;
     color: var(--text);
   }
 
@@ -588,7 +604,7 @@
     background: none;
     border: 1px solid var(--rose);
     color: var(--muted);
-    font-size: 0.7rem;
+    font-size: 0.93rem;
     padding: 3px 8px;
     border-radius: 8px;
     cursor: pointer;
@@ -606,12 +622,12 @@
 
   .track-add-row input {
     margin-bottom: 0;
-    font-size: 0.78rem;
+    font-size: 1.01rem;
     padding: 8px 10px;
   }
 
   .track-add-row label {
-    font-size: 0.7rem;
+    font-size: 0.93rem;
     color: var(--muted);
     display: block;
     margin-bottom: 4px;
@@ -624,19 +640,28 @@
     padding: 8px 12px;
     border-radius: 10px;
     cursor: pointer;
-    font-size: 0.78rem;
+    font-size: 1.01rem;
     font-family: 'Noto Sans KR', sans-serif;
     white-space: nowrap;
   }
 
   /* 사연 목록 */
   .submission-item {
-    background: var(--light);
-    border: 1px solid var(--accent);
+    background: rgba(255,255,255,0.55);
+    border: 1px solid rgba(255,255,255,0.8);
     border-radius: 10px;
     padding: 14px;
     margin-bottom: 10px;
     position: relative;
+  }
+
+  .sub-badge {
+    font-size: 0.91rem;
+    padding: 2px 8px;
+    border-radius: 10px;
+    background: rgba(255,255,255,0.6);
+    border: 1px solid var(--accent);
+    color: var(--muted);
   }
 
   .sub-meta {
@@ -646,29 +671,20 @@
     margin-bottom: 8px;
   }
 
-  .sub-badge {
-    font-size: 0.68rem;
-    padding: 2px 8px;
-    border-radius: 10px;
-    background: var(--blush);
-    border: 1px solid var(--rose);
-    color: var(--muted);
-  }
-
   .sub-name {
-    font-size: 0.78rem;
+    font-size: 1.01rem;
     color: var(--brown);
     font-weight: 500;
   }
 
   .sub-time {
-    font-size: 0.7rem;
+    font-size: 0.93rem;
     color: var(--soft);
     margin-left: auto;
   }
 
   .sub-content {
-    font-size: 0.82rem;
+    font-size: 1.05rem;
     color: var(--text);
     line-height: 1.8;
     white-space: pre-wrap;
@@ -676,7 +692,7 @@
 
   .sub-song {
     margin-top: 6px;
-    font-size: 0.78rem;
+    font-size: 1.01rem;
     color: var(--muted);
   }
 
@@ -687,7 +703,7 @@
     background: none;
     border: 1px solid var(--rose);
     color: var(--soft);
-    font-size: 0.7rem;
+    font-size: 0.93rem;
     padding: 2px 7px;
     border-radius: 8px;
     cursor: pointer;
@@ -701,10 +717,10 @@
   }
 
   .filter-btn {
-    background: var(--light);
+    background: rgba(255,255,255,0.45);
     border: 1px solid var(--accent);
     color: var(--muted);
-    font-size: 0.75rem;
+    font-size: 0.98rem;
     padding: 5px 12px;
     border-radius: 8px;
     cursor: pointer;
@@ -713,7 +729,7 @@
   }
 
   .filter-btn.active {
-    background: var(--blush);
+    background: rgba(255,255,255,0.8);
     border-color: var(--dusty);
     color: var(--brown);
   }
@@ -745,15 +761,11 @@
     <div class="admin-btn-wrap">
       <button class="admin-btn" onclick="openAdminModal()">운영자</button>
     </div>
-    <div class="mic-icon">🎤</div>
-    <h1>표현(Pyo hyun)</h1>
-    <p class="tagline"> 라디오 버스킹 · 당신의 하루에 노래 한 그릇</p>
-    <p class="bio" id="bio-text">거리에서 노래합니다.<br>신청곡과 사연을 받아 라디오처럼 진행하는 버스킹이에요.<br>당신의 이야기를 노래로 담아드릴게요.</p>
-    <div class="tags">
-      <span class="tag">보컬</span>
-      <span class="tag">어쿠스틱</span>
-      <span class="tag">감성 팝</span>
-      <span class="tag">목포</span>
+    <div class="header-inner">
+      <span class="header-label">Radio Busking</span>
+      <h1>표현 (Pyo hyun)</h1>
+      <p class="tagline">당신의 하루에 노래 한 그릇</p>
+      <p class="bio" id="bio-text">거리에서 노래합니다.<br>신청곡과 사연을 받아 라디오처럼 진행하는 버스킹이에요.<br>당신의 이야기를 노래로 담아드릴게요.</p>
     </div>
   </header>
 
@@ -1147,7 +1159,7 @@
     const ul = document.getElementById('admin-setlist');
     if (!ul) return;
     if (!val || Object.keys(val).length === 0) {
-      ul.innerHTML = '<li style="font-size:0.8rem;color:var(--soft);padding:8px 0;">등록된 곡이 없어요</li>';
+      ul.innerHTML = '<li style="font-size: 1.03rem;color:var(--soft);padding:8px 0;">등록된 곡이 없어요</li>';
       return;
     }
     ul.innerHTML = Object.entries(val).map(([key, t]) => `
