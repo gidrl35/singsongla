@@ -1,0 +1,1230 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>진의 라디오 버스킹</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@300;400;500;600&family=Noto+Sans+KR:wght@300;400;500&family=Gowun+Batang:wght@400;700&display=swap" rel="stylesheet">
+
+<!-- Firebase SDK -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+  import { getDatabase, ref, onValue, set, push, get } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+
+  const firebaseConfig = {
+    databaseURL: "https://sing-f5b3d-default-rtdb.firebaseio.com/"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getDatabase(app);
+
+  window._db = db;
+  window._ref = ref;
+  window._onValue = onValue;
+  window._set = set;
+  window._push = push;
+  window._get = get;
+  window._firebaseReady = true;
+  window.dispatchEvent(new Event('firebaseReady'));
+</script>
+
+<style>
+  :root {
+    --cream: #faf7f2;
+    --blush: #f5ede6;
+    --rose: #e8cfc4;
+    --dusty: #d4b5a8;
+    --muted: #a8897c;
+    --brown: #7a5c52;
+    --text: #3d2b25;
+    --soft: #c9b0a5;
+    --light: #fdf9f6;
+    --accent: #e2c4b8;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--cream);
+    color: var(--text);
+    font-family: 'Noto Sans KR', sans-serif;
+    font-weight: 300;
+    line-height: 1.8;
+    min-height: 100vh;
+  }
+
+  /* ── 배경 패턴 ── */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      radial-gradient(circle at 20% 20%, rgba(232,207,196,0.25) 0%, transparent 50%),
+      radial-gradient(circle at 80% 70%, rgba(212,181,168,0.2) 0%, transparent 50%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .container {
+    max-width: 640px;
+    margin: 0 auto;
+    padding: 0 20px 80px;
+    position: relative;
+    z-index: 1;
+  }
+
+  /* ── 헤더 ── */
+  header {
+    text-align: center;
+    padding: 52px 0 36px;
+    position: relative;
+  }
+
+  .mic-icon {
+    width: 64px;
+    height: 64px;
+    background: var(--blush);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 18px;
+    font-size: 26px;
+    border: 1.5px solid var(--rose);
+  }
+
+  header h1 {
+    font-family: 'Gowun Batang', serif;
+    font-size: 1.75rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    color: var(--text);
+  }
+
+  .tagline {
+    font-size: 0.78rem;
+    color: var(--muted);
+    letter-spacing: 0.06em;
+    margin-top: 4px;
+  }
+
+  .bio {
+    font-size: 0.82rem;
+    color: var(--brown);
+    margin: 14px 0 16px;
+    line-height: 1.9;
+  }
+
+  .tags {
+    display: flex;
+    gap: 7px;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+
+  .tag {
+    background: var(--blush);
+    border: 1px solid var(--rose);
+    color: var(--muted);
+    font-size: 0.72rem;
+    padding: 4px 12px;
+    border-radius: 20px;
+    letter-spacing: 0.04em;
+  }
+
+  .admin-btn-wrap {
+    position: absolute;
+    top: 16px;
+    right: 0;
+  }
+
+  .admin-btn {
+    background: var(--blush);
+    border: 1px solid var(--rose);
+    color: var(--muted);
+    font-size: 0.72rem;
+    padding: 6px 14px;
+    border-radius: 20px;
+    cursor: pointer;
+    font-family: 'Noto Sans KR', sans-serif;
+    transition: background 0.2s;
+  }
+
+  .admin-btn:hover { background: var(--rose); }
+
+  /* ── 구분선 ── */
+  .divider {
+    height: 1px;
+    background: linear-gradient(to right, transparent, var(--rose), transparent);
+    margin: 28px 0;
+  }
+
+  /* ── 섹션 공통 ── */
+  .section {
+    background: rgba(255,255,255,0.55);
+    border: 1px solid rgba(232,207,196,0.5);
+    border-radius: 16px;
+    padding: 28px 26px;
+    margin-bottom: 18px;
+    backdrop-filter: blur(4px);
+  }
+
+  .section-title {
+    font-family: 'Gowun Batang', serif;
+    font-size: 0.88rem;
+    font-weight: 700;
+    color: var(--brown);
+    letter-spacing: 0.08em;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .section-title::before {
+    content: '';
+    display: block;
+    width: 4px;
+    height: 14px;
+    background: var(--dusty);
+    border-radius: 2px;
+  }
+
+  .empty-msg {
+    text-align: center;
+    color: var(--soft);
+    font-size: 0.8rem;
+    padding: 18px 0;
+    letter-spacing: 0.04em;
+  }
+
+  /* ── 버스킹 일정 ── */
+  .schedule-content {
+    font-size: 0.85rem;
+    color: var(--text);
+    white-space: pre-wrap;
+    line-height: 1.9;
+  }
+
+  /* ── 셋리스트 ── */
+  .setlist {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .setlist-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: var(--light);
+    border: 1px solid var(--accent);
+    border-radius: 10px;
+    padding: 12px 16px;
+    transition: background 0.2s;
+    cursor: pointer;
+    text-decoration: none;
+    color: inherit;
+  }
+
+  .setlist-item:hover { background: var(--blush); }
+
+  .track-num {
+    font-family: 'Gowun Batang', serif;
+    font-size: 0.72rem;
+    color: var(--soft);
+    min-width: 20px;
+    text-align: center;
+  }
+
+  .track-info { flex: 1; }
+
+  .track-title {
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: var(--text);
+  }
+
+  .track-artist {
+    font-size: 0.75rem;
+    color: var(--muted);
+    margin-top: 2px;
+  }
+
+  .track-link {
+    font-size: 0.7rem;
+    color: var(--soft);
+    padding: 3px 8px;
+    border: 1px solid var(--rose);
+    border-radius: 10px;
+    white-space: nowrap;
+  }
+
+  /* ── 사연/신청곡 폼 ── */
+  .form-group {
+    margin-bottom: 14px;
+  }
+
+  .form-group label {
+    display: block;
+    font-size: 0.75rem;
+    color: var(--muted);
+    margin-bottom: 6px;
+    letter-spacing: 0.04em;
+  }
+
+  .form-group input,
+  .form-group textarea,
+  .form-group select {
+    width: 100%;
+    background: var(--light);
+    border: 1px solid var(--accent);
+    border-radius: 10px;
+    padding: 10px 14px;
+    font-family: 'Noto Sans KR', sans-serif;
+    font-size: 0.82rem;
+    color: var(--text);
+    font-weight: 300;
+    resize: vertical;
+    transition: border-color 0.2s;
+    outline: none;
+  }
+
+  .form-group input:focus,
+  .form-group textarea:focus,
+  .form-group select:focus {
+    border-color: var(--dusty);
+  }
+
+  .submit-btn {
+    width: 100%;
+    background: var(--blush);
+    border: 1.5px solid var(--dusty);
+    color: var(--brown);
+    font-family: 'Noto Sans KR', sans-serif;
+    font-size: 0.82rem;
+    font-weight: 500;
+    padding: 12px;
+    border-radius: 10px;
+    cursor: pointer;
+    letter-spacing: 0.06em;
+    transition: background 0.2s;
+    margin-top: 4px;
+  }
+
+  .submit-btn:hover { background: var(--rose); }
+
+  .tab-row {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 18px;
+  }
+
+  .tab-btn {
+    flex: 1;
+    background: var(--light);
+    border: 1px solid var(--accent);
+    color: var(--muted);
+    font-family: 'Noto Sans KR', sans-serif;
+    font-size: 0.78rem;
+    padding: 8px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .tab-btn.active {
+    background: var(--blush);
+    border-color: var(--dusty);
+    color: var(--brown);
+    font-weight: 500;
+  }
+
+  .tab-panel { display: none; }
+  .tab-panel.active { display: block; }
+
+  /* ── 오픈채팅 ── */
+  .openchat-btn {
+    display: block;
+    width: 100%;
+    text-align: center;
+    background: var(--blush);
+    border: 1.5px solid var(--dusty);
+    color: var(--brown);
+    font-family: 'Noto Sans KR', sans-serif;
+    font-size: 0.85rem;
+    font-weight: 500;
+    padding: 14px;
+    border-radius: 12px;
+    text-decoration: none;
+    letter-spacing: 0.04em;
+    transition: background 0.2s;
+  }
+
+  .openchat-btn:hover { background: var(--rose); }
+
+  .openchat-desc {
+    text-align: center;
+    font-size: 0.78rem;
+    color: var(--soft);
+    margin-top: 10px;
+  }
+
+  /* ── 토스트 ── */
+  #toast {
+    position: fixed;
+    bottom: 30px;
+    left: 50%;
+    transform: translateX(-50%) translateY(20px);
+    background: var(--brown);
+    color: #fff;
+    padding: 10px 22px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    opacity: 0;
+    transition: all 0.3s;
+    pointer-events: none;
+    z-index: 9999;
+    white-space: nowrap;
+  }
+
+  #toast.show {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+
+  /* ── 관리자 오버레이 ── */
+  .overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(61,43,37,0.35);
+    z-index: 1000;
+    backdrop-filter: blur(2px);
+    align-items: center;
+    justify-content: center;
+  }
+
+  .overlay.active { display: flex; }
+
+  .modal {
+    background: var(--cream);
+    border: 1px solid var(--rose);
+    border-radius: 20px;
+    padding: 32px 28px;
+    width: 90%;
+    max-width: 360px;
+    box-shadow: 0 8px 40px rgba(122,92,82,0.15);
+  }
+
+  .modal h2 {
+    font-family: 'Gowun Batang', serif;
+    font-size: 1.1rem;
+    text-align: center;
+    margin-bottom: 20px;
+    color: var(--text);
+  }
+
+  .modal input {
+    width: 100%;
+    background: var(--light);
+    border: 1px solid var(--accent);
+    border-radius: 10px;
+    padding: 10px 14px;
+    font-family: 'Noto Sans KR', sans-serif;
+    font-size: 0.88rem;
+    color: var(--text);
+    outline: none;
+    text-align: center;
+    letter-spacing: 0.2em;
+    margin-bottom: 14px;
+  }
+
+  .modal-btns {
+    display: flex;
+    gap: 8px;
+  }
+
+  .modal-btns button {
+    flex: 1;
+    padding: 10px;
+    border-radius: 10px;
+    border: 1px solid var(--accent);
+    font-family: 'Noto Sans KR', sans-serif;
+    font-size: 0.82rem;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+
+  .modal-btns .confirm {
+    background: var(--blush);
+    border-color: var(--dusty);
+    color: var(--brown);
+    font-weight: 500;
+  }
+
+  .modal-btns .cancel {
+    background: var(--light);
+    color: var(--muted);
+  }
+
+  .modal-btns .confirm:hover { background: var(--rose); }
+
+  /* ── 관리자 페이지 ── */
+  #admin-page {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: var(--cream);
+    z-index: 2000;
+    overflow-y: auto;
+  }
+
+  #admin-page.active { display: block; }
+
+  .admin-header {
+    background: var(--blush);
+    border-bottom: 1px solid var(--rose);
+    padding: 16px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
+
+  .admin-header h1 {
+    font-family: 'Gowun Batang', serif;
+    font-size: 1rem;
+    color: var(--brown);
+  }
+
+  .close-admin {
+    background: none;
+    border: 1px solid var(--rose);
+    color: var(--muted);
+    font-size: 0.78rem;
+    padding: 6px 14px;
+    border-radius: 20px;
+    cursor: pointer;
+    font-family: 'Noto Sans KR', sans-serif;
+  }
+
+  .admin-body {
+    max-width: 640px;
+    margin: 0 auto;
+    padding: 24px 20px 80px;
+  }
+
+  .admin-section {
+    background: rgba(255,255,255,0.6);
+    border: 1px solid rgba(232,207,196,0.5);
+    border-radius: 16px;
+    padding: 24px;
+    margin-bottom: 16px;
+  }
+
+  .admin-section h2 {
+    font-family: 'Gowun Batang', serif;
+    font-size: 0.9rem;
+    color: var(--brown);
+    margin-bottom: 14px;
+    letter-spacing: 0.06em;
+  }
+
+  .admin-section textarea,
+  .admin-section input {
+    width: 100%;
+    background: var(--light);
+    border: 1px solid var(--accent);
+    border-radius: 10px;
+    padding: 10px 14px;
+    font-family: 'Noto Sans KR', sans-serif;
+    font-size: 0.82rem;
+    color: var(--text);
+    font-weight: 300;
+    resize: vertical;
+    outline: none;
+    margin-bottom: 8px;
+  }
+
+  .admin-save-btn {
+    background: var(--blush);
+    border: 1.5px solid var(--dusty);
+    color: var(--brown);
+    font-family: 'Noto Sans KR', sans-serif;
+    font-size: 0.78rem;
+    font-weight: 500;
+    padding: 8px 18px;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+
+  .admin-save-btn:hover { background: var(--rose); }
+
+  /* 셋리스트 관리 */
+  .track-list-admin { list-style: none; }
+
+  .track-item-admin {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--accent);
+  }
+
+  .track-item-admin:last-child { border-bottom: none; }
+
+  .track-item-admin span {
+    flex: 1;
+    font-size: 0.82rem;
+    color: var(--text);
+  }
+
+  .del-track {
+    background: none;
+    border: 1px solid var(--rose);
+    color: var(--muted);
+    font-size: 0.7rem;
+    padding: 3px 8px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-family: 'Noto Sans KR', sans-serif;
+    white-space: nowrap;
+  }
+
+  .track-add-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr auto;
+    gap: 8px;
+    margin-top: 12px;
+    align-items: end;
+  }
+
+  .track-add-row input {
+    margin-bottom: 0;
+    font-size: 0.78rem;
+    padding: 8px 10px;
+  }
+
+  .track-add-row label {
+    font-size: 0.7rem;
+    color: var(--muted);
+    display: block;
+    margin-bottom: 4px;
+  }
+
+  .track-add-row button {
+    background: var(--blush);
+    border: 1.5px solid var(--dusty);
+    color: var(--brown);
+    padding: 8px 12px;
+    border-radius: 10px;
+    cursor: pointer;
+    font-size: 0.78rem;
+    font-family: 'Noto Sans KR', sans-serif;
+    white-space: nowrap;
+  }
+
+  /* 사연 목록 */
+  .submission-item {
+    background: var(--light);
+    border: 1px solid var(--accent);
+    border-radius: 10px;
+    padding: 14px;
+    margin-bottom: 10px;
+    position: relative;
+  }
+
+  .sub-meta {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    margin-bottom: 8px;
+  }
+
+  .sub-badge {
+    font-size: 0.68rem;
+    padding: 2px 8px;
+    border-radius: 10px;
+    background: var(--blush);
+    border: 1px solid var(--rose);
+    color: var(--muted);
+  }
+
+  .sub-name {
+    font-size: 0.78rem;
+    color: var(--brown);
+    font-weight: 500;
+  }
+
+  .sub-time {
+    font-size: 0.7rem;
+    color: var(--soft);
+    margin-left: auto;
+  }
+
+  .sub-content {
+    font-size: 0.82rem;
+    color: var(--text);
+    line-height: 1.8;
+    white-space: pre-wrap;
+  }
+
+  .sub-song {
+    margin-top: 6px;
+    font-size: 0.78rem;
+    color: var(--muted);
+  }
+
+  .del-sub {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: none;
+    border: 1px solid var(--rose);
+    color: var(--soft);
+    font-size: 0.7rem;
+    padding: 2px 7px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-family: 'Noto Sans KR', sans-serif;
+  }
+
+  .sub-filter-row {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 12px;
+  }
+
+  .filter-btn {
+    background: var(--light);
+    border: 1px solid var(--accent);
+    color: var(--muted);
+    font-size: 0.75rem;
+    padding: 5px 12px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-family: 'Noto Sans KR', sans-serif;
+    transition: all 0.2s;
+  }
+
+  .filter-btn.active {
+    background: var(--blush);
+    border-color: var(--dusty);
+    color: var(--brown);
+  }
+
+  /* 오픈채팅 링크 */
+  .link-row {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+  }
+
+  .link-row input { flex: 1; margin-bottom: 0; }
+
+  @media (max-width: 480px) {
+    .track-add-row {
+      grid-template-columns: 1fr 1fr;
+    }
+    .track-add-row > div:nth-child(3) { grid-column: 1 / -1; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ── 메인 페이지 ── -->
+<div class="container" id="main-page">
+
+  <!-- 헤더/소개 -->
+  <header>
+    <div class="admin-btn-wrap">
+      <button class="admin-btn" onclick="openAdminModal()">운영자</button>
+    </div>
+    <div class="mic-icon">🎤</div>
+    <h1>진 (Jin)</h1>
+    <p class="tagline">진의 라디오 버스킹 · 당신의 하루에 노래 한 그릇</p>
+    <p class="bio" id="bio-text">거리에서 노래합니다.<br>신청곡과 사연을 받아 라디오처럼 진행하는 버스킹이에요.<br>당신의 이야기를 노래로 담아드릴게요.</p>
+    <div class="tags">
+      <span class="tag">보컬</span>
+      <span class="tag">어쿠스틱</span>
+      <span class="tag">감성 팝</span>
+      <span class="tag">목포</span>
+    </div>
+  </header>
+
+  <div class="divider"></div>
+
+  <!-- 버스킹 일정 -->
+  <div class="section">
+    <div class="section-title">버스킹 일정</div>
+    <div id="schedule-display">
+      <p class="empty-msg">일정을 준비 중이에요. 곧 공지될 예정이에요.</p>
+    </div>
+  </div>
+
+  <!-- 오늘의 셋리스트 -->
+  <div class="section">
+    <div class="section-title">오늘의 셋리스트</div>
+    <div id="setlist-display">
+      <p class="empty-msg">오늘의 노래를 준비 중이에요</p>
+    </div>
+  </div>
+
+  <!-- 사연 & 신청곡 접수 -->
+  <div class="section">
+    <div class="section-title">사연 &amp; 신청곡 보내기</div>
+
+    <div class="tab-row">
+      <button class="tab-btn active" onclick="switchTab('story')">💌 사연 보내기</button>
+      <button class="tab-btn" onclick="switchTab('request')">🎵 신청곡 보내기</button>
+    </div>
+
+    <!-- 사연 탭 -->
+    <div class="tab-panel active" id="tab-story">
+      <div class="form-group">
+        <label>이름 (익명 가능)</label>
+        <input type="text" id="story-name" placeholder="이름 또는 닉네임">
+      </div>
+      <div class="form-group">
+        <label>사연</label>
+        <textarea id="story-content" rows="4" placeholder="진에게 전하고 싶은 이야기를 적어주세요."></textarea>
+      </div>
+      <button class="submit-btn" onclick="submitStory()">사연 보내기</button>
+    </div>
+
+    <!-- 신청곡 탭 -->
+    <div class="tab-panel" id="tab-request">
+      <div class="form-group">
+        <label>이름 (익명 가능)</label>
+        <input type="text" id="req-name" placeholder="이름 또는 닉네임">
+      </div>
+      <div class="form-group">
+        <label>신청 곡명</label>
+        <input type="text" id="req-song" placeholder="곡명과 가수명을 적어주세요">
+      </div>
+      <div class="form-group">
+        <label>신청 이유 (선택)</label>
+        <textarea id="req-reason" rows="3" placeholder="이 노래를 신청하는 이유가 있다면 알려주세요."></textarea>
+      </div>
+      <button class="submit-btn" onclick="submitRequest()">신청곡 보내기</button>
+    </div>
+  </div>
+
+  <!-- 오픈채팅 -->
+  <div class="section">
+    <div class="section-title">실시간 참여 소통방</div>
+    <a id="openchat-link" href="#" target="_blank" class="openchat-btn" onclick="handleChatLink(event)">
+      💬 카카오 오픈채팅 참여하기
+    </a>
+    <p class="openchat-desc">버스킹 현장 분위기를 오픈채팅으로 함께해요 🎶</p>
+  </div>
+
+</div><!-- /container -->
+
+<!-- ── 관리자 비밀번호 모달 ── -->
+<div class="overlay" id="admin-modal">
+  <div class="modal">
+    <h2>운영자 확인</h2>
+    <input type="password" id="admin-pw-input" placeholder="비밀번호" maxlength="10"
+      onkeydown="if(event.key==='Enter') checkAdminPw()">
+    <div class="modal-btns">
+      <button class="cancel" onclick="closeAdminModal()">취소</button>
+      <button class="confirm" onclick="checkAdminPw()">확인</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── 관리자 페이지 ── -->
+<div id="admin-page">
+  <div class="admin-header">
+    <h1>🎙 운영자 페이지</h1>
+    <button class="close-admin" onclick="closeAdminPage()">← 페이지로 돌아가기</button>
+  </div>
+  <div class="admin-body">
+
+    <!-- 소개 문구 관리 -->
+    <div class="admin-section">
+      <h2>소개 문구 관리</h2>
+      <textarea id="admin-bio" rows="3" placeholder="소개 문구를 입력하세요"></textarea>
+      <button class="admin-save-btn" onclick="saveBio()">저장</button>
+    </div>
+
+    <!-- 버스킹 일정 -->
+    <div class="admin-section">
+      <h2>버스킹 일정 공지</h2>
+      <textarea id="admin-schedule" rows="4" placeholder="예) 2025년 6월 7일 (토) 오후 2시&#10;장소: 목포 구도심 거리&#10;날씨에 따라 일정이 변경될 수 있어요."></textarea>
+      <button class="admin-save-btn" onclick="saveSchedule()">저장</button>
+    </div>
+
+    <!-- 셋리스트 관리 -->
+    <div class="admin-section">
+      <h2>오늘의 셋리스트</h2>
+      <ul class="track-list-admin" id="admin-setlist"></ul>
+      <div class="track-add-row">
+        <div>
+          <label>곡명</label>
+          <input type="text" id="new-track-title" placeholder="곡명">
+        </div>
+        <div>
+          <label>가수</label>
+          <input type="text" id="new-track-artist" placeholder="가수명">
+        </div>
+        <div>
+          <label>멜론/벅스 링크</label>
+          <input type="text" id="new-track-link" placeholder="https://...">
+        </div>
+        <button onclick="addTrack()">추가</button>
+      </div>
+    </div>
+
+    <!-- 오픈채팅 링크 -->
+    <div class="admin-section">
+      <h2>오픈채팅 링크</h2>
+      <div class="link-row">
+        <input type="text" id="admin-chat-link" placeholder="카카오 오픈채팅 링크를 입력하세요">
+        <button class="admin-save-btn" onclick="saveChatLink()">저장</button>
+      </div>
+    </div>
+
+    <!-- 사연/신청곡 목록 -->
+    <div class="admin-section">
+      <h2>접수된 사연 &amp; 신청곡</h2>
+      <div class="sub-filter-row">
+        <button class="filter-btn active" onclick="filterSubs('all', this)">전체</button>
+        <button class="filter-btn" onclick="filterSubs('story', this)">사연</button>
+        <button class="filter-btn" onclick="filterSubs('request', this)">신청곡</button>
+      </div>
+      <div id="admin-submissions">
+        <p class="empty-msg">접수된 내용이 없어요</p>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ── 토스트 ── -->
+<div id="toast"></div>
+
+<script>
+  const ADMIN_PW = '2491';
+  let currentFilter = 'all';
+  let allSubmissions = {};
+
+  // ── Firebase 초기화 대기 ──
+  function waitFirebase(cb) {
+    if (window._firebaseReady) { cb(); return; }
+    window.addEventListener('firebaseReady', cb, { once: true });
+  }
+
+  // ── 토스트 ──
+  function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 2200);
+  }
+
+  // ── 탭 전환 ──
+  function switchTab(tab) {
+    document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById('tab-' + tab).classList.add('active');
+    event.currentTarget.classList.add('active');
+  }
+
+  // ── 관리자 모달 ──
+  function openAdminModal() {
+    document.getElementById('admin-modal').classList.add('active');
+    setTimeout(() => document.getElementById('admin-pw-input').focus(), 100);
+  }
+
+  function closeAdminModal() {
+    document.getElementById('admin-modal').classList.remove('active');
+    document.getElementById('admin-pw-input').value = '';
+  }
+
+  function checkAdminPw() {
+    const pw = document.getElementById('admin-pw-input').value;
+    if (pw === ADMIN_PW) {
+      closeAdminModal();
+      openAdminPage();
+    } else {
+      showToast('비밀번호가 맞지 않아요');
+      document.getElementById('admin-pw-input').value = '';
+      document.getElementById('admin-pw-input').focus();
+    }
+  }
+
+  // ── 관리자 페이지 ──
+  function openAdminPage() {
+    document.getElementById('admin-page').classList.add('active');
+    loadAdminData();
+  }
+
+  function closeAdminPage() {
+    document.getElementById('admin-page').classList.remove('active');
+  }
+
+  // ── Firebase 데이터 읽기/쓰기 ──
+  function fbSet(path, data) {
+    waitFirebase(() => {
+      const r = window._ref(window._db, path);
+      window._set(r, data);
+    });
+  }
+
+  function fbListen(path, cb) {
+    waitFirebase(() => {
+      const r = window._ref(window._db, path);
+      window._onValue(r, snap => cb(snap.val()));
+    });
+  }
+
+  function fbPush(path, data) {
+    return new Promise(resolve => {
+      waitFirebase(() => {
+        const r = window._ref(window._db, path);
+        const newRef = window._push(r, data);
+        resolve(newRef.key);
+      });
+    });
+  }
+
+  function fbDelete(path) {
+    waitFirebase(() => {
+      const r = window._ref(window._db, path);
+      window._set(r, null);
+    });
+  }
+
+  // ── 실시간 구독 ──
+  window.addEventListener('firebaseReady', () => {
+    // 소개 문구
+    fbListen('bio', val => {
+      if (val) document.getElementById('bio-text').innerHTML = val.replace(/\n/g, '<br>');
+    });
+
+    // 일정
+    fbListen('schedule', val => {
+      const el = document.getElementById('schedule-display');
+      if (val) {
+        el.innerHTML = `<p class="schedule-content">${escHtml(val)}</p>`;
+      } else {
+        el.innerHTML = `<p class="empty-msg">일정을 준비 중이에요. 곧 공지될 예정이에요.</p>`;
+      }
+    });
+
+    // 셋리스트
+    fbListen('setlist', val => {
+      const el = document.getElementById('setlist-display');
+      if (val && Object.keys(val).length > 0) {
+        const items = Object.entries(val);
+        const html = `<ul class="setlist">${items.map(([k, t], i) => `
+          <a class="setlist-item" href="${escHtml(t.link || '#')}" target="${t.link ? '_blank' : '_self'}"
+            onclick="${t.link ? '' : 'event.preventDefault()'}">
+            <span class="track-num">${String(i+1).padStart(2,'0')}</span>
+            <div class="track-info">
+              <div class="track-title">${escHtml(t.title)}</div>
+              <div class="track-artist">${escHtml(t.artist || '')}</div>
+            </div>
+            ${t.link ? `<span class="track-link">🎵 듣기</span>` : ''}
+          </a>`).join('')}</ul>`;
+        el.innerHTML = html;
+      } else {
+        el.innerHTML = `<p class="empty-msg">오늘의 노래를 준비 중이에요</p>`;
+      }
+    });
+
+    // 오픈채팅 링크
+    fbListen('chatLink', val => {
+      const btn = document.getElementById('openchat-link');
+      if (val) {
+        btn.href = val;
+        btn.setAttribute('data-has-link', '1');
+      } else {
+        btn.href = '#';
+        btn.removeAttribute('data-has-link');
+      }
+    });
+
+    // 사연/신청곡
+    fbListen('submissions', val => {
+      allSubmissions = val || {};
+      renderSubmissions(currentFilter);
+    });
+  });
+
+  function handleChatLink(e) {
+    const btn = document.getElementById('openchat-link');
+    if (!btn.getAttribute('data-has-link')) {
+      e.preventDefault();
+      showToast('오픈채팅 링크가 아직 등록되지 않았어요');
+    }
+  }
+
+  function escHtml(str) {
+    return String(str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  // ── 사연 제출 ──
+  async function submitStory() {
+    const name = document.getElementById('story-name').value.trim() || '익명';
+    const content = document.getElementById('story-content').value.trim();
+    if (!content) { showToast('사연 내용을 입력해주세요'); return; }
+    await fbPush('submissions', {
+      type: 'story', name, content, time: Date.now()
+    });
+    document.getElementById('story-name').value = '';
+    document.getElementById('story-content').value = '';
+    showToast('사연이 전달됐어요 💌');
+  }
+
+  async function submitRequest() {
+    const name = document.getElementById('req-name').value.trim() || '익명';
+    const song = document.getElementById('req-song').value.trim();
+    const reason = document.getElementById('req-reason').value.trim();
+    if (!song) { showToast('신청곡을 입력해주세요'); return; }
+    await fbPush('submissions', {
+      type: 'request', name, song, reason, time: Date.now()
+    });
+    document.getElementById('req-name').value = '';
+    document.getElementById('req-song').value = '';
+    document.getElementById('req-reason').value = '';
+    showToast('신청곡이 전달됐어요 🎵');
+  }
+
+  // ── 관리자: 데이터 로드 ──
+  function loadAdminData() {
+    waitFirebase(() => {
+      fbListen('bio', val => {
+        const el = document.getElementById('admin-bio');
+        if (el && val) el.value = val;
+      });
+      fbListen('schedule', val => {
+        const el = document.getElementById('admin-schedule');
+        if (el && val) el.value = val;
+      });
+      fbListen('chatLink', val => {
+        const el = document.getElementById('admin-chat-link');
+        if (el && val) el.value = val;
+      });
+      fbListen('setlist', val => renderAdminSetlist(val));
+    });
+  }
+
+  function saveBio() {
+    const val = document.getElementById('admin-bio').value.trim();
+    fbSet('bio', val || null);
+    showToast('소개 문구가 저장됐어요');
+  }
+
+  function saveSchedule() {
+    const val = document.getElementById('admin-schedule').value.trim();
+    fbSet('schedule', val || null);
+    showToast('일정이 저장됐어요');
+  }
+
+  function saveChatLink() {
+    const val = document.getElementById('admin-chat-link').value.trim();
+    fbSet('chatLink', val || null);
+    showToast('오픈채팅 링크가 저장됐어요');
+  }
+
+  // ── 셋리스트 관리 ──
+  let setlistCache = {};
+
+  fbListen('setlist', val => {
+    setlistCache = val || {};
+  });
+
+  function renderAdminSetlist(val) {
+    setlistCache = val || {};
+    const ul = document.getElementById('admin-setlist');
+    if (!ul) return;
+    if (!val || Object.keys(val).length === 0) {
+      ul.innerHTML = '<li style="font-size:0.8rem;color:var(--soft);padding:8px 0;">등록된 곡이 없어요</li>';
+      return;
+    }
+    ul.innerHTML = Object.entries(val).map(([key, t]) => `
+      <li class="track-item-admin">
+        <span>${escHtml(t.title)} - ${escHtml(t.artist || '')}${t.link ? ' 🔗' : ''}</span>
+        <button class="del-track" onclick="deleteTrack('${key}')">삭제</button>
+      </li>`).join('');
+  }
+
+  function addTrack() {
+    const title = document.getElementById('new-track-title').value.trim();
+    const artist = document.getElementById('new-track-artist').value.trim();
+    const link = document.getElementById('new-track-link').value.trim();
+    if (!title) { showToast('곡명을 입력해주세요'); return; }
+    fbPush('setlist', { title, artist, link: link || '' });
+    document.getElementById('new-track-title').value = '';
+    document.getElementById('new-track-artist').value = '';
+    document.getElementById('new-track-link').value = '';
+    showToast('곡이 추가됐어요');
+  }
+
+  function deleteTrack(key) {
+    fbDelete('setlist/' + key);
+    showToast('삭제됐어요');
+  }
+
+  // ── 사연/신청곡 렌더링 ──
+  function renderSubmissions(filter) {
+    const container = document.getElementById('admin-submissions');
+    if (!container) return;
+    const entries = Object.entries(allSubmissions)
+      .filter(([, v]) => filter === 'all' || v.type === filter)
+      .sort((a, b) => (b[1].time || 0) - (a[1].time || 0));
+
+    if (entries.length === 0) {
+      container.innerHTML = '<p class="empty-msg">접수된 내용이 없어요</p>';
+      return;
+    }
+
+    container.innerHTML = entries.map(([key, sub]) => {
+      const date = sub.time ? new Date(sub.time).toLocaleString('ko-KR', { month:'2-digit', day:'2-digit', hour:'2-digit', minute:'2-digit' }) : '';
+      if (sub.type === 'story') {
+        return `<div class="submission-item">
+          <div class="sub-meta">
+            <span class="sub-badge">사연</span>
+            <span class="sub-name">${escHtml(sub.name)}</span>
+            <span class="sub-time">${date}</span>
+          </div>
+          <div class="sub-content">${escHtml(sub.content)}</div>
+          <button class="del-sub" onclick="deleteSub('${key}')">삭제</button>
+        </div>`;
+      } else {
+        return `<div class="submission-item">
+          <div class="sub-meta">
+            <span class="sub-badge">신청곡</span>
+            <span class="sub-name">${escHtml(sub.name)}</span>
+            <span class="sub-time">${date}</span>
+          </div>
+          <div class="sub-song">🎵 ${escHtml(sub.song)}</div>
+          ${sub.reason ? `<div class="sub-content" style="margin-top:6px">${escHtml(sub.reason)}</div>` : ''}
+          <button class="del-sub" onclick="deleteSub('${key}')">삭제</button>
+        </div>`;
+      }
+    }).join('');
+  }
+
+  function filterSubs(filter, btn) {
+    currentFilter = filter;
+    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    renderSubmissions(filter);
+  }
+
+  function deleteSub(key) {
+    fbDelete('submissions/' + key);
+    showToast('삭제됐어요');
+  }
+</script>
+</body>
+</html>
