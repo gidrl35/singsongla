@@ -148,7 +148,7 @@
     background: rgba(255,255,255,0.5);
     border: 1px solid var(--accent);
     color: var(--muted);
-    font-size: 0.93rem;
+    font-size: 0.74rem;
     padding: 5px 13px;
     border-radius: 20px;
     cursor: pointer;
@@ -207,6 +207,36 @@
     letter-spacing: 0.04em;
   }
 
+
+  /* ── 일정 분리 레이아웃 ── */
+  .schedule-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    padding: 6px 0;
+  }
+
+  .schedule-label {
+    font-size: 0.82rem;
+    color: var(--muted);
+    min-width: 52px;
+    padding-top: 1px;
+    letter-spacing: 0.02em;
+  }
+
+  .schedule-val {
+    font-size: 0.93rem;
+    color: var(--text);
+    font-weight: 400;
+    line-height: 1.7;
+    flex: 1;
+  }
+
+  .schedule-divider {
+    height: 1px;
+    background: linear-gradient(to right, var(--accent), transparent);
+    margin: 8px 0;
+  }
   /* ── 버스킹 일정 ── */
   .schedule-content {
     font-size: 1.08rem;
@@ -315,7 +345,7 @@
     border: 1.5px solid var(--dusty);
     color: var(--brown);
     font-family: 'Noto Sans KR', sans-serif;
-    font-size: 1.05rem;
+    font-size: 0.86rem;
     font-weight: 500;
     padding: 12px;
     border-radius: 10px;
@@ -339,7 +369,7 @@
     border: 1px solid var(--accent);
     color: var(--muted);
     font-family: 'Noto Sans KR', sans-serif;
-    font-size: 1.01rem;
+    font-size: 0.82rem;
     padding: 8px;
     border-radius: 8px;
     cursor: pointer;
@@ -365,7 +395,7 @@
     border: 1.5px solid var(--dusty);
     color: var(--brown);
     font-family: 'Noto Sans KR', sans-serif;
-    font-size: 1.08rem;
+    font-size: 0.89rem;
     font-weight: 500;
     padding: 14px;
     border-radius: 12px;
@@ -773,7 +803,7 @@
 
   <!-- 버스킹 일정 -->
   <div class="section">
-    <div class="section-title">버스킹 일정</div>
+    <div class="section-title">버스킹 일정 및 장소</div>
     <div id="schedule-display">
       <p class="empty-msg">일정을 준비 중이에요. 곧 공지될 예정이에요.</p>
     </div>
@@ -868,9 +898,12 @@
 
     <!-- 버스킹 일정 -->
     <div class="admin-section">
-      <h2>버스킹 일정 공지</h2>
-      <textarea id="admin-schedule" rows="4" placeholder="예) 2025년 6월 7일 (토) 오후 2시&#10;장소: 목포 구도심 거리&#10;날씨에 따라 일정이 변경될 수 있어요."></textarea>
-      <button class="admin-save-btn" onclick="saveSchedule()">저장</button>
+      <h2>버스킹 일정 및 장소 공지</h2>
+      <label style="font-size:0.78rem;color:var(--muted);margin-bottom:4px;display:block;">📅 일정</label>
+      <input type="text" id="admin-schedule-date" placeholder="예) 2025년 6월 7일 (토) 오후 2시">
+      <label style="font-size:0.78rem;color:var(--muted);margin:8px 0 4px;display:block;">📍 장소</label>
+      <input type="text" id="admin-schedule-place" placeholder="예) 목포 구도심 거리">
+      <button class="admin-save-btn" onclick="saveSchedule()" style="margin-top:10px;">저장</button>
     </div>
 
     <!-- 셋리스트 관리 -->
@@ -1021,14 +1054,25 @@
       if (val) document.getElementById('bio-text').innerHTML = val.replace(/\n/g, '<br>');
     });
 
-    // 일정
-    fbListen('schedule', val => {
-      const el = document.getElementById('schedule-display');
-      if (val) {
-        el.innerHTML = `<p class="schedule-content">${escHtml(val)}</p>`;
-      } else {
-        el.innerHTML = `<p class="empty-msg">일정을 준비 중이에요. 곧 공지될 예정이에요.</p>`;
-      }
+    // 일정 (날짜 + 장소 분리)
+    fbListen('scheduleDate', dateVal => {
+      fbListen('schedulePlace', placeVal => {
+        const el = document.getElementById('schedule-display');
+        if (!dateVal && !placeVal) {
+          el.innerHTML = `<p class="empty-msg">일정을 준비 중이에요. 곧 공지될 예정이에요.</p>`;
+        } else {
+          el.innerHTML = `
+            <div class="schedule-row">
+              <div class="schedule-label">📅 일정</div>
+              <div class="schedule-val">${escHtml(dateVal || '미정')}</div>
+            </div>
+            <div class="schedule-divider"></div>
+            <div class="schedule-row">
+              <div class="schedule-label">📍 장소</div>
+              <div class="schedule-val">${escHtml(placeVal || '미정')}</div>
+            </div>`;
+        }
+      });
     });
 
     // 셋리스트
@@ -1117,8 +1161,12 @@
         const el = document.getElementById('admin-bio');
         if (el && val) el.value = val;
       });
-      fbListen('schedule', val => {
-        const el = document.getElementById('admin-schedule');
+      fbListen('scheduleDate', val => {
+        const el = document.getElementById('admin-schedule-date');
+        if (el && val) el.value = val;
+      });
+      fbListen('schedulePlace', val => {
+        const el = document.getElementById('admin-schedule-place');
         if (el && val) el.value = val;
       });
       fbListen('chatLink', val => {
@@ -1136,8 +1184,10 @@
   }
 
   function saveSchedule() {
-    const val = document.getElementById('admin-schedule').value.trim();
-    fbSet('schedule', val || null);
+    const date = document.getElementById('admin-schedule-date').value.trim();
+    const place = document.getElementById('admin-schedule-place').value.trim();
+    fbSet('scheduleDate', date || null);
+    fbSet('schedulePlace', place || null);
     showToast('일정이 저장됐어요');
   }
 
