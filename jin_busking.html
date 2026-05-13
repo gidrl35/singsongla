@@ -726,6 +726,12 @@
     color: var(--muted);
   }
 
+  .sub-visit {
+    font-size: 0.88rem;
+    color: var(--dusty);
+    margin-bottom: 6px;
+  }
+
   .del-sub {
     position: absolute;
     top: 10px;
@@ -833,6 +839,10 @@
         <input type="text" id="story-name" placeholder="이름 또는 닉네임">
       </div>
       <div class="form-group">
+        <label>공연 오시는 날짜</label>
+        <input type="text" id="story-visit" placeholder="예) 6월 7일, 미정, 매번 등">
+      </div>
+      <div class="form-group">
         <label>사연</label>
         <textarea id="story-content" rows="4" placeholder="진에게 전하고 싶은 이야기를 적어주세요."></textarea>
       </div>
@@ -846,8 +856,12 @@
         <input type="text" id="req-name" placeholder="이름 또는 닉네임">
       </div>
       <div class="form-group">
-        <label>신청곡</label>
-        <input type="text" id="req-song" placeholder="곡명과 가수명을 적어주세요.">
+        <label>신청 곡명</label>
+        <input type="text" id="req-song" placeholder="곡명과 가수명을 적어주세요">
+      </div>
+      <div class="form-group">
+        <label>공연 오시는 날짜</label>
+        <input type="text" id="req-visit" placeholder="예) 6월 7일, 미정, 매번 등">
       </div>
       <div class="form-group">
         <label>신청 이유 (선택)</label>
@@ -1131,11 +1145,13 @@
   async function submitStory() {
     const name = document.getElementById('story-name').value.trim() || '익명';
     const content = document.getElementById('story-content').value.trim();
+    const visit = document.getElementById('story-visit').value.trim();
     if (!content) { showToast('사연 내용을 입력해주세요'); return; }
     await fbPush('submissions', {
-      type: 'story', name, content, time: Date.now()
+      type: 'story', name, content, visit, time: Date.now()
     });
     document.getElementById('story-name').value = '';
+    document.getElementById('story-visit').value = '';
     document.getElementById('story-content').value = '';
     showToast('사연이 전달됐어요 💌');
   }
@@ -1144,12 +1160,14 @@
     const name = document.getElementById('req-name').value.trim() || '익명';
     const song = document.getElementById('req-song').value.trim();
     const reason = document.getElementById('req-reason').value.trim();
+    const visit = document.getElementById('req-visit').value.trim();
     if (!song) { showToast('신청곡을 입력해주세요'); return; }
     await fbPush('submissions', {
-      type: 'request', name, song, reason, time: Date.now()
+      type: 'request', name, song, reason, visit, time: Date.now()
     });
     document.getElementById('req-name').value = '';
     document.getElementById('req-song').value = '';
+    document.getElementById('req-visit').value = '';
     document.getElementById('req-reason').value = '';
     showToast('신청곡이 전달됐어요 🎵');
   }
@@ -1258,6 +1276,7 @@
             <span class="sub-name">${escHtml(sub.name)}</span>
             <span class="sub-time">${date}</span>
           </div>
+          ${sub.visit ? `<div class="sub-visit">📅 방문 예정일 : ${escHtml(sub.visit)}</div>` : ''}
           <div class="sub-content">${escHtml(sub.content)}</div>
           <button class="del-sub" onclick="deleteSub('${key}')">삭제</button>
         </div>`;
@@ -1268,6 +1287,7 @@
             <span class="sub-name">${escHtml(sub.name)}</span>
             <span class="sub-time">${date}</span>
           </div>
+          ${sub.visit ? `<div class="sub-visit">📅 방문 예정일 : ${escHtml(sub.visit)}</div>` : ''}
           <div class="sub-song">🎵 ${escHtml(sub.song)}</div>
           ${sub.reason ? `<div class="sub-content" style="margin-top:6px">${escHtml(sub.reason)}</div>` : ''}
           <button class="del-sub" onclick="deleteSub('${key}')">삭제</button>
