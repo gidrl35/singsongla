@@ -900,9 +900,9 @@
     <div class="admin-section">
       <h2>버스킹 일정 및 장소 공지</h2>
       <label style="font-size:0.78rem;color:var(--muted);margin-bottom:4px;display:block;">📅 일정</label>
-      <input type="text" id="admin-schedule-date" placeholder="예) 2025년 6월 7일 (토) 오후 2시">
+      <textarea id="admin-schedule-date" rows="3" placeholder="예) 2025년 6월 7일 (토) 오후 2시&#10;날씨에 따라 변경될 수 있어요."></textarea>
       <label style="font-size:0.78rem;color:var(--muted);margin:8px 0 4px;display:block;">📍 장소</label>
-      <input type="text" id="admin-schedule-place" placeholder="예) 목포 구도심 거리">
+      <textarea id="admin-schedule-place" rows="2" placeholder="예) 목포 구도심 거리"></textarea>
       <button class="admin-save-btn" onclick="saveSchedule()" style="margin-top:10px;">저장</button>
     </div>
 
@@ -1064,12 +1064,12 @@
           el.innerHTML = `
             <div class="schedule-row">
               <div class="schedule-label">📅 일정</div>
-              <div class="schedule-val">${escHtml(dateVal || '미정')}</div>
+              <div class="schedule-val">${escHtml(dateVal || '미정').replace(/\n/g, '<br>')}</div>
             </div>
             <div class="schedule-divider"></div>
             <div class="schedule-row">
               <div class="schedule-label">📍 장소</div>
-              <div class="schedule-val">${escHtml(placeVal || '미정')}</div>
+              <div class="schedule-val">${escHtml(placeVal || '미정').replace(/\n/g, '<br>')}</div>
             </div>`;
         }
       });
