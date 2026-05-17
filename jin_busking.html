@@ -313,7 +313,7 @@
 
   .track-title {
     font-size: 1.08rem;
-    font-weight: 500;
+    font-weight: 400;
     color: var(--text);
   }
 
@@ -1166,7 +1166,7 @@
             onclick="${t.link ? '' : 'event.preventDefault()'}">
             <span class="track-num">${String(i+1).padStart(2,'0')}</span>
             <div class="track-info">
-              <div class="track-title"><strong>${escHtml(t.title)}</strong>${t.artist ? `<span class="track-artist-inline"> · ${escHtml(t.artist)}</span>` : ''}</div>
+              <div class="track-title">${escHtml(t.title)}${t.artist ? `<span class="track-artist-inline"> · ${escHtml(t.artist)}</span>` : ''}</div>
             </div>
             ${t.link ? `<span class="track-link">듣기</span>` : ''}
           </a>`).join('')}</ul>`;
