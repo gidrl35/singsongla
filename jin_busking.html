@@ -237,6 +237,35 @@
     background: linear-gradient(to right, var(--accent), transparent);
     margin: 8px 0;
   }
+  /* ── 미니맵 ── */
+  .minimap-wrap {
+    margin-top: 14px;
+    border-radius: 12px;
+    overflow: hidden;
+    border: 1px solid var(--accent);
+    position: relative;
+  }
+
+  .minimap-frame {
+    width: 100%;
+    height: 180px;
+    border: none;
+    display: block;
+  }
+
+  .minimap-link {
+    display: block;
+    text-align: right;
+    font-size: 0.8rem;
+    color: var(--muted);
+    padding: 6px 12px;
+    background: rgba(255,255,255,0.6);
+    text-decoration: none;
+    letter-spacing: 0.02em;
+  }
+
+  .minimap-link:hover { color: var(--brown); }
+
   /* ── 버스킹 일정 ── */
   .schedule-content {
     font-size: 1.08rem;
@@ -292,6 +321,12 @@
     font-size: 0.98rem;
     color: var(--muted);
     margin-top: 2px;
+  }
+
+  .track-artist-inline {
+    font-size: 0.98rem;
+    color: var(--muted);
+    font-weight: 300;
   }
 
   .track-link {
@@ -817,7 +852,7 @@
 
   <!-- 오늘의 셋리스트 -->
   <div class="section">
-    <div class="section-title">오늘의 셋리스트</div>
+    <div class="section-title">셋리스트</div>
     <div id="setlist-display">
       <p class="empty-msg">오늘의 노래를 준비 중이에요</p>
     </div>
@@ -844,7 +879,7 @@
       </div>
       <div class="form-group">
         <label>사연</label>
-        <textarea id="story-content" rows="4" placeholder="진에게 전하고 싶은 이야기를 적어주세요."></textarea>
+        <textarea id="story-content" rows="4" placeholder="표현에게 전하고 싶은 이야기를 적어주세요."></textarea>
       </div>
       <button class="submit-btn" onclick="submitStory()">사연 보내기</button>
     </div>
@@ -856,8 +891,8 @@
         <input type="text" id="req-name" placeholder="이름 또는 닉네임">
       </div>
       <div class="form-group">
-        <label>신청 곡명</label>
-        <input type="text" id="req-song" placeholder="곡명과 가수명을 적어주세요">
+        <label>신청곡명</label>
+        <input type="text" id="req-song" placeholder="곡명과 가수명을 적어주세요.">
       </div>
       <div class="form-group">
         <label>공연 오시는 날짜</label>
@@ -898,7 +933,7 @@
 <!-- ── 관리자 페이지 ── -->
 <div id="admin-page">
   <div class="admin-header">
-    <h1>🎙 운영자 페이지</h1>
+    <h1>🎙 운영자 페이지 · 라디오 버스킹</h1>
     <button class="close-admin" onclick="closeAdminPage()">← 페이지로 돌아가기</button>
   </div>
   <div class="admin-body">
@@ -913,16 +948,22 @@
     <!-- 버스킹 일정 -->
     <div class="admin-section">
       <h2>버스킹 일정 및 장소 공지</h2>
-      <label style="font-size:0.78rem;color:var(--muted);margin-bottom:4px;display:block;">📅 일정</label>
-      <textarea id="admin-schedule-date" rows="3" placeholder="예) 2025년 6월 7일 (토) 오후 2시&#10;날씨에 따라 변경될 수 있어요."></textarea>
-      <label style="font-size:0.78rem;color:var(--muted);margin:8px 0 4px;display:block;">📍 장소</label>
-      <textarea id="admin-schedule-place" rows="2" placeholder="예) 목포 구도심 거리"></textarea>
-      <button class="admin-save-btn" onclick="saveSchedule()" style="margin-top:10px;">저장</button>
+      <label style="font-size:0.78rem;color:var(--muted);margin-bottom:8px;display:block;">📅 일정 (최대 5개)</label>
+      <div id="schedule-rows-admin"></div>
+      <button class="admin-save-btn" onclick="saveSchedule()" style="margin-top:4px;">일정 저장</button>
+
+      <div style="height:1px;background:linear-gradient(to right,var(--accent),transparent);margin:18px 0;"></div>
+
+      <label style="font-size:0.78rem;color:var(--muted);margin-bottom:4px;display:block;">📍 장소</label>
+      <input type="text" id="admin-schedule-place" placeholder="예) 목포 구도심 거리">
+      <label style="font-size:0.78rem;color:var(--muted);margin:8px 0 4px;display:block;">🗺 지도 링크 (카카오맵·네이버지도 공유 URL)</label>
+      <input type="text" id="admin-map-link" placeholder="https://...">
+      <button class="admin-save-btn" onclick="savePlace()" style="margin-top:10px;">장소 저장</button>
     </div>
 
     <!-- 셋리스트 관리 -->
     <div class="admin-section">
-      <h2>오늘의 셋리스트</h2>
+      <h2>셋리스트</h2>
       <ul class="track-list-admin" id="admin-setlist"></ul>
       <div class="track-add-row">
         <div>
@@ -1023,6 +1064,7 @@
   function openAdminPage() {
     document.getElementById('admin-page').classList.add('active');
     loadAdminData();
+    renderAdminScheduleRows(null); // 초기 5행 렌더
   }
 
   function closeAdminPage() {
@@ -1068,26 +1110,51 @@
       if (val) document.getElementById('bio-text').innerHTML = val.replace(/\n/g, '<br>');
     });
 
-    // 일정 (날짜 + 장소 분리)
-    fbListen('scheduleDate', dateVal => {
-      fbListen('schedulePlace', placeVal => {
-        const el = document.getElementById('schedule-display');
-        if (!dateVal && !placeVal) {
-          el.innerHTML = `<p class="empty-msg">일정을 준비 중이에요. 곧 공지될 예정이에요.</p>`;
-        } else {
-          el.innerHTML = `
-            <div class="schedule-row">
-              <div class="schedule-label">📅 일정</div>
-              <div class="schedule-val">${escHtml(dateVal || '미정').replace(/\n/g, '<br>')}</div>
-            </div>
-            <div class="schedule-divider"></div>
-            <div class="schedule-row">
-              <div class="schedule-label">📍 장소</div>
-              <div class="schedule-val">${escHtml(placeVal || '미정').replace(/\n/g, '<br>')}</div>
-            </div>`;
-        }
-      });
-    });
+    // 일정 (날짜 rows + 장소 + 지도)
+    const scheduleState = { rows: null, place: null, mapLink: null };
+    function renderSchedule() {
+      const el = document.getElementById('schedule-display');
+      const { rows, place, mapLink } = scheduleState;
+      const hasRows = rows && rows.some(r => r.date);
+      if (!hasRows && !place) {
+        el.innerHTML = `<p class="empty-msg">일정을 준비 중이에요. 곧 공지될 예정이에요.</p>`;
+        return;
+      }
+      const statusLabel = { '':'', pending:'미정', preparing:'준비중', ongoing:'진행중', done:'종료' };
+      const statusColor = { '':'transparent', pending:'var(--soft)', preparing:'#7aab95', ongoing:'#5b8fa8', done:'var(--dusty)' };
+      let html = '';
+      if (hasRows) {
+        html += `<div style="margin-bottom:12px;">`;
+        rows.filter(r => r.date).forEach(r => {
+          const d = new Date(r.date);
+          const fmt = isNaN(d) ? r.date : d.toLocaleDateString('ko-KR',{year:'numeric',month:'long',day:'numeric',weekday:'short'});
+          const timeStr = r.time ? ` · ${r.time.slice(0,5)}` : '';
+          const badge = r.status ? `<span style="font-size:0.78rem;padding:2px 10px;border-radius:12px;border:1px solid ${statusColor[r.status]||'var(--soft)'};color:${statusColor[r.status]||'var(--soft)'};">${statusLabel[r.status]||''}</span>` : '';
+          html += `<div style="display:flex;align-items:center;gap:10px;padding:6px 0;border-bottom:1px solid rgba(201,168,152,0.2);">
+            <span style="font-size:0.98rem;color:var(--text);flex:1;">${escHtml(fmt)}${escHtml(timeStr)}</span>
+            ${badge}
+          </div>`;
+        });
+        html += `</div>`;
+      }
+      if (place) {
+        html += `<div class="schedule-divider"></div>
+          <div class="schedule-row" style="margin-top:10px;">
+            <div class="schedule-label">📍 장소</div>
+            <div class="schedule-val">${escHtml(place)}</div>
+          </div>`;
+      }
+      if (mapLink) {
+        html += `<div class="minimap-wrap">
+          <iframe src="${escHtml(mapLink)}" class="minimap-frame" allowfullscreen loading="lazy"></iframe>
+          <a href="${escHtml(mapLink)}" target="_blank" class="minimap-link">지도 열기 →</a>
+        </div>`;
+      }
+      el.innerHTML = html;
+    }
+    fbListen('scheduleRows', val => { scheduleState.rows = val; renderSchedule(); });
+    fbListen('schedulePlace', val => { scheduleState.place = val; renderSchedule(); });
+    fbListen('mapLink', val => { scheduleState.mapLink = val; renderSchedule(); });
 
     // 셋리스트
     fbListen('setlist', val => {
@@ -1099,10 +1166,9 @@
             onclick="${t.link ? '' : 'event.preventDefault()'}">
             <span class="track-num">${String(i+1).padStart(2,'0')}</span>
             <div class="track-info">
-              <div class="track-title">${escHtml(t.title)}</div>
-              <div class="track-artist">${escHtml(t.artist || '')}</div>
+              <div class="track-title"><strong>${escHtml(t.title)}</strong>${t.artist ? `<span class="track-artist-inline"> · ${escHtml(t.artist)}</span>` : ''}</div>
             </div>
-            ${t.link ? `<span class="track-link">🎵 듣기</span>` : ''}
+            ${t.link ? `<span class="track-link">듣기</span>` : ''}
           </a>`).join('')}</ul>`;
         el.innerHTML = html;
       } else {
@@ -1179,12 +1245,13 @@
         const el = document.getElementById('admin-bio');
         if (el && val) el.value = val;
       });
-      fbListen('scheduleDate', val => {
-        const el = document.getElementById('admin-schedule-date');
-        if (el && val) el.value = val;
-      });
+      fbListen('scheduleRows', val => renderAdminScheduleRows(val));
       fbListen('schedulePlace', val => {
         const el = document.getElementById('admin-schedule-place');
+        if (el && val) el.value = val;
+      });
+      fbListen('mapLink', val => {
+        const el = document.getElementById('admin-map-link');
         if (el && val) el.value = val;
       });
       fbListen('chatLink', val => {
@@ -1201,12 +1268,43 @@
     showToast('소개 문구가 저장됐어요');
   }
 
+  const STATUS_LABELS = { '':'', pending:'미정', preparing:'준비중', ongoing:'진행중', done:'종료' };
+  const STATUS_COLORS = { '':'transparent', pending:'var(--soft)', preparing:'#7aab95', ongoing:'#5b8fa8', done:'var(--dusty)' };
+
+  function renderAdminScheduleRows(rows) {
+    const container = document.getElementById('schedule-rows-admin');
+    if (!container) return;
+    const data = Array.from({length:5}, (_,i) => (rows && rows[i]) ? rows[i] : {date:'', time:'', status:''});
+    container.innerHTML = data.map((row, i) => `
+      <div style="display:flex;gap:6px;align-items:center;margin-bottom:8px;flex-wrap:wrap;">
+        <input type="date" id="srow-date-${i}" value="${row.date||''}"
+          style="flex:2;min-width:130px;background:rgba(255,255,255,0.6);border:1px solid var(--accent);border-radius:10px;padding:8px 10px;font-family:'Noto Sans KR',sans-serif;font-size:0.88rem;color:var(--text);outline:none;">
+        <input type="time" id="srow-time-${i}" value="${row.time||''}"
+          style="flex:1;min-width:90px;background:rgba(255,255,255,0.6);border:1px solid var(--accent);border-radius:10px;padding:8px 10px;font-family:'Noto Sans KR',sans-serif;font-size:0.88rem;color:var(--text);outline:none;">
+        <select id="srow-status-${i}"
+          style="flex:1;min-width:80px;background:rgba(255,255,255,0.6);border:1px solid var(--accent);border-radius:10px;padding:8px 10px;font-family:'Noto Sans KR',sans-serif;font-size:0.85rem;color:var(--muted);outline:none;cursor:pointer;">
+          ${Object.entries(STATUS_LABELS).map(([k,v]) => `<option value="${k}" ${row.status===k?'selected':''}>${v}</option>`).join('')}
+        </select>
+      </div>`).join('');
+  }
+
   function saveSchedule() {
-    const date = document.getElementById('admin-schedule-date').value.trim();
-    const place = document.getElementById('admin-schedule-place').value.trim();
-    fbSet('scheduleDate', date || null);
-    fbSet('schedulePlace', place || null);
+    const rows = Array.from({length:5}, (_,i) => {
+      const d = document.getElementById(`srow-date-${i}`);
+      const t = document.getElementById(`srow-time-${i}`);
+      const s = document.getElementById(`srow-status-${i}`);
+      return { date: d ? d.value : '', time: t ? t.value : '', status: s ? s.value : '' };
+    });
+    fbSet('scheduleRows', rows);
     showToast('일정이 저장됐어요');
+  }
+
+  function savePlace() {
+    const place = document.getElementById('admin-schedule-place').value.trim();
+    const mapLink = document.getElementById('admin-map-link').value.trim();
+    fbSet('schedulePlace', place || null);
+    fbSet('mapLink', mapLink || null);
+    showToast('장소가 저장됐어요');
   }
 
   function saveChatLink() {
