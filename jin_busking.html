@@ -1304,7 +1304,6 @@
 
   function savePlace() {
     const place = document.getElementById('admin-schedule-place').value.trim();
-    const mapLink = document.getElementById('admin-map-link').value.trim();
     fbSet('schedulePlace', place || null);
     fbSet('mapImage', window._mapImageData || null);
     showToast('장소가 저장됐어요');
