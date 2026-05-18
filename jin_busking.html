@@ -1060,7 +1060,6 @@
   function openAdminPage() {
     document.getElementById('admin-page').classList.add('active');
     loadAdminData();
-    renderAdminScheduleRows(null); // 초기 5행 렌더
   }
 
   function closeAdminPage() {
@@ -1235,12 +1234,13 @@
 
   // ── 관리자: 데이터 로드 ──
   function loadAdminData() {
+    renderAdminScheduleRows([]); // 먼저 빈 5행 렌더링
     waitFirebase(() => {
       fbListen('bio', val => {
         const el = document.getElementById('admin-bio');
         if (el && val) el.value = val;
       });
-      fbListen('scheduleRows', val => renderAdminScheduleRows(val));
+      fbListen('scheduleRows', val => renderAdminScheduleRows(val || []));
       fbListen('schedulePlace', val => {
         const el = document.getElementById('admin-schedule-place');
         if (el && val) el.value = val;
