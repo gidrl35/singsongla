@@ -1144,6 +1144,7 @@
           <img src="${mapImage}" class="minimap-frame" alt="위치 이미지">
         </div>`;
       }
+      html += `<p style="margin-top:14px;font-size:0.82rem;color:var(--soft);letter-spacing:0.02em;">※ 날씨 및 현장 상황에 따라 일정이 취소될 수 있어요.</p>`;
       el.innerHTML = html;
     }
     fbListen('scheduleRows', val => { scheduleState.rows = val; renderSchedule(); });
@@ -1198,7 +1199,11 @@
   }
 
   function escHtml(str) {
-    return String(str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    return String(str || '')
+      .replace(/&/g, '\x26amp;')
+      .replace(/</g, '\x26lt;')
+      .replace(/>/g, '\x26gt;')
+      .replace(/"/g, '\x26quot;');
   }
 
   // ── 사연 제출 ──
@@ -1288,7 +1293,18 @@
           style="flex:1;min-width:80px;background:rgba(255,255,255,0.6);border:1px solid var(--accent);border-radius:10px;padding:8px 10px;font-family:'Noto Sans KR',sans-serif;font-size:0.85rem;color:var(--muted);outline:none;cursor:pointer;">
           ${Object.entries(STATUS_LABELS).map(([k,v]) => `<option value="${k}" ${row.status===k?'selected':''}>${v}</option>`).join('')}
         </select>
+        <button onclick="clearScheduleRow(${i})" title="삭제"
+          style="background:none;border:1px solid var(--rose);color:var(--soft);border-radius:8px;padding:7px 10px;cursor:pointer;font-size:0.85rem;white-space:nowrap;">✕</button>
       </div>`).join('');
+  }
+
+  function clearScheduleRow(i) {
+    const d = document.getElementById(`srow-date-${i}`);
+    const t = document.getElementById(`srow-time-${i}`);
+    const s = document.getElementById(`srow-status-${i}`);
+    if (d) d.value = '';
+    if (t) t.value = '';
+    if (s) s.value = '';
   }
 
   function saveSchedule() {
@@ -1431,6 +1447,27 @@
     fbDelete('submissions/' + key);
     showToast('삭제됐어요');
   }
+
+  // ── 전역 함수 등록 (onclick에서 접근 가능하도록) ──
+  window.openAdminModal    = openAdminModal;
+  window.closeAdminModal   = closeAdminModal;
+  window.checkAdminPw      = checkAdminPw;
+  window.closeAdminPage    = closeAdminPage;
+  window.switchTab         = switchTab;
+  window.submitStory       = submitStory;
+  window.submitRequest     = submitRequest;
+  window.saveBio           = saveBio;
+  window.saveSchedule      = saveSchedule;
+  window.savePlace         = savePlace;
+  window.saveChatLink      = saveChatLink;
+  window.addTrack          = addTrack;
+  window.deleteTrack       = deleteTrack;
+  window.filterSubs        = filterSubs;
+  window.deleteSub         = deleteSub;
+  window.handleChatLink    = handleChatLink;
+  window.clearScheduleRow  = clearScheduleRow;
+  window.previewMapImage   = previewMapImage;
+  window.deleteMapImage    = deleteMapImage;
 </script>
 </body>
 </html>
