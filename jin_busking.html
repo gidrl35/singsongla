@@ -755,9 +755,19 @@
     margin-bottom: 6px;
   }
 
-  .del-sub {
-    display: block;
-    margin-top: 10px;
+  .accept-sub {
+    background: rgba(122,171,149,0.12);
+    border: 1px solid #7aab95;
+    color: #5a9078;
+    font-size: 0.88rem;
+    padding: 3px 12px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-family: 'Noto Sans KR', sans-serif;
+    transition: background 0.2s;
+  }
+
+  .accept-sub:hover { background: rgba(122,171,149,0.25); }
     background: none;
     border: 1px solid var(--rose);
     color: var(--soft);
@@ -994,6 +1004,7 @@
         <button class="filter-btn active" onclick="filterSubs('all', this)">전체</button>
         <button class="filter-btn" onclick="filterSubs('story', this)">사연</button>
         <button class="filter-btn" onclick="filterSubs('request', this)">신청곡</button>
+        <button class="filter-btn" onclick="filterSubs('done', this)">접수완료</button>
       </div>
       <div id="admin-submissions">
         <p class="empty-msg">접수된 내용이 없어요</p>
@@ -1399,7 +1410,11 @@
     const container = document.getElementById('admin-submissions');
     if (!container) return;
     const entries = Object.entries(allSubmissions)
-      .filter(([, v]) => filter === 'all' || v.type === filter)
+      .filter(([, v]) => {
+        if (filter === 'all') return !v.done;
+        if (filter === 'done') return !!v.done;
+        return v.type === filter && !v.done;
+      })
       .sort((a, b) => (b[1].time || 0) - (a[1].time || 0));
 
     if (entries.length === 0) {
@@ -1409,28 +1424,39 @@
 
     container.innerHTML = entries.map(([key, sub]) => {
       const date = sub.time ? new Date(sub.time).toLocaleString('ko-KR', { month:'2-digit', day:'2-digit', hour:'2-digit', minute:'2-digit' }) : '';
+      const doneBadge = sub.done ? `<span style="font-size:0.68rem;padding:2px 8px;border-radius:10px;background:rgba(122,171,149,0.15);border:1px solid #7aab95;color:#7aab95;">접수완료</span>` : '';
+      const acceptBtn = !sub.done ? `<button class="accept-sub" onclick="acceptSub('${key}')">접수</button>` : `<button class="accept-sub" onclick="acceptSub('${key}')" style="opacity:0.5;">완료취소</button>`;
+
       if (sub.type === 'story') {
         return `<div class="submission-item">
           <div class="sub-meta">
             <span class="sub-badge">사연</span>
+            ${doneBadge}
             <span class="sub-name">${escHtml(sub.name)}</span>
             <span class="sub-time">${date}</span>
           </div>
           ${sub.visit ? `<div class="sub-visit">📅 방문 예정일 : ${escHtml(sub.visit)}</div>` : ''}
           <div class="sub-content">${escHtml(sub.content)}</div>
-          <button class="del-sub" onclick="deleteSub('${key}')">삭제</button>
+          <div style="display:flex;gap:8px;margin-top:10px;">
+            ${acceptBtn}
+            <button class="del-sub" onclick="deleteSub('${key}')">삭제</button>
+          </div>
         </div>`;
       } else {
         return `<div class="submission-item">
           <div class="sub-meta">
             <span class="sub-badge">신청곡</span>
+            ${doneBadge}
             <span class="sub-name">${escHtml(sub.name)}</span>
             <span class="sub-time">${date}</span>
           </div>
           ${sub.visit ? `<div class="sub-visit">📅 방문 예정일 : ${escHtml(sub.visit)}</div>` : ''}
           <div class="sub-song">🎵 ${escHtml(sub.song)}</div>
           ${sub.reason ? `<div class="sub-content" style="margin-top:6px">${escHtml(sub.reason)}</div>` : ''}
-          <button class="del-sub" onclick="deleteSub('${key}')">삭제</button>
+          <div style="display:flex;gap:8px;margin-top:10px;">
+            ${acceptBtn}
+            <button class="del-sub" onclick="deleteSub('${key}')">삭제</button>
+          </div>
         </div>`;
       }
     }).join('');
@@ -1446,6 +1472,17 @@
   function deleteSub(key) {
     fbDelete('submissions/' + key);
     showToast('삭제됐어요');
+  }
+
+  function acceptSub(key) {
+    const sub = allSubmissions[key];
+    if (!sub) return;
+    const newDone = !sub.done;
+    waitFirebase(() => {
+      const r = window._ref(window._db, 'submissions/' + key + '/done');
+      window._set(r, newDone);
+    });
+    showToast(newDone ? '접수 완료 처리됐어요 ✓' : '접수 완료가 취소됐어요');
   }
 
   // ── 전역 함수 등록 (onclick에서 접근 가능하도록) ──
@@ -1464,6 +1501,7 @@
   window.deleteTrack       = deleteTrack;
   window.filterSubs        = filterSubs;
   window.deleteSub         = deleteSub;
+  window.acceptSub         = acceptSub;
   window.handleChatLink    = handleChatLink;
   window.clearScheduleRow  = clearScheduleRow;
   window.previewMapImage   = previewMapImage;
