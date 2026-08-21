@@ -33,7 +33,6 @@
     --mint: #e8f5f2;
     --peach: #fceee6;
     --rose: #f0d4c8;
-    --blush: #f7e4dc;
     --dusty: #a8806e;
     --muted: #7a5c52;
     --brown: #6b4f47;
@@ -254,18 +253,6 @@
     object-fit: cover;
   }
 
-  .schedule-notice {
-    background: rgba(255,255,255,0.55);
-    border: 1px solid var(--rose);
-    border-radius: 10px;
-    padding: 10px 16px;
-    font-size: 0.97rem;
-    color: var(--brown);
-    letter-spacing: 0.03em;
-    margin-bottom: 14px;
-    text-align: center;
-  }
-
   /* ── 버스킹 일정 ── */
   .schedule-content {
     font-size: 1.08rem;
@@ -315,6 +302,12 @@
     font-size: 1.08rem;
     font-weight: 400;
     color: var(--text);
+  }
+
+  .track-artist {
+    font-size: 0.98rem;
+    color: var(--muted);
+    margin-top: 2px;
   }
 
   .track-artist-inline {
@@ -848,7 +841,7 @@
     <div class="header-inner">
       <span class="header-label">Radio Busking</span>
       <h1>표현 (Pyo hyun)</h1>
-      <p class="tagline">당신의 하루에 노래 한 그릇을 담아,</p>
+      <p class="tagline">당신의 하루에 노래 한 그릇</p>
       <p class="bio" id="bio-text">거리에서 노래합니다.<br>신청곡과 사연을 받아 라디오처럼 진행하는 버스킹이에요.<br>당신의 이야기를 노래로 담아드릴게요.</p>
     </div>
   </header>
@@ -961,16 +954,6 @@
     <!-- 버스킹 일정 -->
     <div class="admin-section">
       <h2>버스킹 일정 및 장소 공지</h2>
-
-      <label style="font-size:0.78rem;color:var(--muted);margin-bottom:4px;display:block;">🔔 일정 공지 문구 (선택)</label>
-      <div style="display:flex;gap:8px;align-items:center;margin-bottom:16px;">
-        <input type="text" id="admin-schedule-notice" placeholder="예) 이번 주는 쉽니다 🌿" style="flex:1;margin-bottom:0;">
-        <button class="admin-save-btn" onclick="saveNotice()">저장</button>
-        <button class="admin-save-btn" onclick="clearNotice()" style="border-color:var(--rose);color:var(--muted);">삭제</button>
-      </div>
-
-      <div style="height:1px;background:linear-gradient(to right,var(--accent),transparent);margin-bottom:16px;"></div>
-
       <label style="font-size:0.78rem;color:var(--muted);margin-bottom:8px;display:block;">📅 일정 (최대 5개)</label>
       <div id="schedule-rows-admin"></div>
       <button class="admin-save-btn" onclick="saveSchedule()" style="margin-top:4px;">일정 저장</button>
@@ -1143,26 +1126,24 @@
     });
 
     // 일정 (날짜 rows + 장소 + 지도)
-    const scheduleState = { rows: null, place: null, mapImage: null, notice: null };
+    const scheduleState = { rows: null, place: null, mapImage: null };
     function renderSchedule() {
       const el = document.getElementById('schedule-display');
-      const { rows, place, mapImage, notice } = scheduleState;
+      const { rows, place, mapImage } = scheduleState;
       const hasRows = rows && rows.some(r => r.date);
-      if (!notice && !hasRows && !place) {
+      if (!hasRows && !place) {
         el.innerHTML = `<p class="empty-msg">일정을 준비 중이에요. 곧 공지될 예정이에요.</p>`;
         return;
       }
       const statusLabel = { '':'', pending:'미정', preparing:'준비중', ongoing:'진행중', done:'종료' };
       const statusColor = { '':'transparent', pending:'var(--soft)', preparing:'#7aab95', ongoing:'#5b8fa8', done:'var(--dusty)' };
       let html = '';
-      if (notice) {
-        html += `<div class="schedule-notice">🔔 ${escHtml(notice)}</div>`;
-      }
       if (hasRows) {
         html += `<div style="margin-bottom:12px;">`;
         rows.filter(r => r.date).forEach(r => {
           const d = new Date(r.date);
-          const fmt = isNaN(d) ? r.date : d.toLocaleDateString('ko-KR',{year:'numeric',month:'long',day:'numeric',weekday:'short'});
+          const DOW = ['일','월','화','수','목','금','토'];
+          const fmt = isNaN(d) ? r.date : d.toLocaleDateString('ko-KR',{year:'numeric',month:'long',day:'numeric'}) + `(${DOW[d.getDay()]})`;
           const timeStr = r.time ? ` · ${r.time.slice(0,5)}` : '';
           const badge = r.status ? `<span style="font-size:0.78rem;padding:2px 10px;border-radius:12px;border:1px solid ${statusColor[r.status]||'var(--soft)'};color:${statusColor[r.status]||'var(--soft)'};">${statusLabel[r.status]||''}</span>` : '';
           html += `<div style="display:flex;align-items:center;gap:10px;padding:6px 0;border-bottom:1px solid rgba(201,168,152,0.2);">
@@ -1190,7 +1171,6 @@
     fbListen('scheduleRows', val => { scheduleState.rows = val; renderSchedule(); });
     fbListen('schedulePlace', val => { scheduleState.place = val; renderSchedule(); });
     fbListen('mapImage', val => { scheduleState.mapImage = val; renderSchedule(); });
-    fbListen('scheduleNotice', val => { scheduleState.notice = val || null; renderSchedule(); });
 
     // 셋리스트
     fbListen('setlist', val => {
@@ -1291,10 +1271,6 @@
         const el = document.getElementById('admin-schedule-place');
         if (el && val) el.value = val;
       });
-      fbListen('scheduleNotice', val => {
-        const el = document.getElementById('admin-schedule-notice');
-        if (el) el.value = val || '';
-      });
       fbListen('mapImage', val => {
         if (!val) return;
         window._mapImageData = val;
@@ -1363,18 +1339,6 @@
     showToast('일정이 저장됐어요');
   }
 
-  function saveNotice() {
-    const val = document.getElementById('admin-schedule-notice').value.trim();
-    fbSet('scheduleNotice', val || null);
-    showToast(val ? '공지가 저장됐어요' : '공지가 삭제됐어요');
-  }
-
-  function clearNotice() {
-    document.getElementById('admin-schedule-notice').value = '';
-    fbSet('scheduleNotice', null);
-    showToast('공지가 삭제됐어요');
-  }
-
   function savePlace() {
     const place = document.getElementById('admin-schedule-place').value.trim();
     fbSet('schedulePlace', place || null);
@@ -1413,7 +1377,14 @@
   }
 
   // ── 셋리스트 관리 ──
+  let setlistCache = {};
+
+  fbListen('setlist', val => {
+    setlistCache = val || {};
+  });
+
   function renderAdminSetlist(val) {
+    setlistCache = val || {};
     const ul = document.getElementById('admin-setlist');
     if (!ul) return;
     if (!val || Object.keys(val).length === 0) {
@@ -1533,8 +1504,6 @@
   window.submitStory       = submitStory;
   window.submitRequest     = submitRequest;
   window.saveBio           = saveBio;
-  window.saveNotice        = saveNotice;
-  window.clearNotice       = clearNotice;
   window.saveSchedule      = saveSchedule;
   window.savePlace         = savePlace;
   window.saveChatLink      = saveChatLink;
