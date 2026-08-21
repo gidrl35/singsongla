@@ -956,7 +956,7 @@
       <h2>버스킹 일정 및 장소 공지</h2>
       <label style="font-size:0.78rem;color:var(--muted);margin-bottom:8px;display:block;">📅 일정 (최대 5개)</label>
       <div id="schedule-rows-admin"></div>
-      <button class="admin-save-btn" onclick="saveSchedule ()" style="margin-top:4px;">일정 저장</button>
+      <button class="admin-save-btn" onclick="saveSchedule()" style="margin-top:4px;">일정 저장</button>
 
       <div style="height:1px;background:linear-gradient(to right,var(--accent),transparent);margin:18px 0;"></div>
 
@@ -1143,7 +1143,7 @@
         rows.filter(r => r.date).forEach(r => {
           const d = new Date(r.date);
           const DOW = ['일','월','화','수','목','금','토'];
-          const fmt = isNaN(d) ? r.date : d.toLocaleDateString('ko-KR',{year:'numeric',month:'long',day:'numeric'}) + `(${DOW[d.getDay()]})`;
+          const fmt = isNaN(d) ? r.date : d.toLocaleDateString('ko-KR',{year:'numeric',month:'long',day:'numeric'}) + ` (${DOW[d.getDay()]})`;
           const timeStr = r.time ? ` · ${r.time.slice(0,5)}` : '';
           const badge = r.status ? `<span style="font-size:0.78rem;padding:2px 10px;border-radius:12px;border:1px solid ${statusColor[r.status]||'var(--soft)'};color:${statusColor[r.status]||'var(--soft)'};">${statusLabel[r.status]||''}</span>` : '';
           html += `<div style="display:flex;align-items:center;gap:10px;padding:6px 0;border-bottom:1px solid rgba(201,168,152,0.2);">
